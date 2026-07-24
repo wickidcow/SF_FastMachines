@@ -1,3 +1,4 @@
+import org.gradle.api.file.DuplicatesStrategy
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -62,6 +63,7 @@ kotlin {
 }
 
 tasks.shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     fun doRelocate(from: String, to: String? = null) {
         val last = to ?: from.split(".").last()
         relocate(from, "$mainPackage.libs.$last")
