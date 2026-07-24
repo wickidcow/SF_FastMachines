@@ -16,9 +16,10 @@ class GravityListener(plugin: FastMachines) : Listener {
 
     @EventHandler
     fun onAnvilFall(e: BlockPhysicsEvent) {
-        if (!Tag.ANVIL.isTagged(e.sourceBlock.type)) return
+        val affectedBlock = e.block
+        if (!Tag.ANVIL.isTagged(affectedBlock.type)) return
 
-        val sfItem = BlockStorage.check(e.sourceBlock) ?: return
+        val sfItem = BlockStorage.check(affectedBlock) ?: return
         if (sfItem is NotAnAnvil) {
             e.isCancelled = true
         }

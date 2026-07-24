@@ -1,6 +1,5 @@
 package net.guizhanss.fastmachines
 
-import io.github.thebusybiscuit.slimefun4.libraries.dough.updater.BlobBuildUpdater
 import net.byteflux.libby.Library
 import net.guizhanss.fastmachines.core.FMRegistry
 import net.guizhanss.fastmachines.core.services.ConfigService
@@ -17,11 +16,8 @@ import net.guizhanss.fastmachines.implementation.setup.ResearchSetup
 import net.guizhanss.fastmachines.implementation.tasks.FastMachineTickingTask
 import net.guizhanss.guizhanlib.libraries.BukkitLibraryManager
 import net.guizhanss.guizhanlib.slimefun.addon.AbstractAddon
-import net.guizhanss.guizhanlib.updater.GuizhanBuildsUpdater
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
-import org.bukkit.plugin.Plugin
-import java.io.File
 import java.util.logging.Level
 
 class FastMachines : AbstractAddon(
@@ -40,10 +36,10 @@ class FastMachines : AbstractAddon(
         val manager = BukkitLibraryManager(this)
         manager.addRepository(centralRepo)
         manager.loadLibrary(
-            Library.builder().groupId("org.jetbrains.kotlin").artifactId("kotlin-stdlib").version("2.1.10").build()
+            Library.builder().groupId("org.jetbrains.kotlin").artifactId("kotlin-stdlib").version("2.4.10").build()
         )
         manager.loadLibrary(
-            Library.builder().groupId("org.jetbrains.kotlin").artifactId("kotlin-reflect").version("2.1.10").build()
+            Library.builder().groupId("org.jetbrains.kotlin").artifactId("kotlin-reflect").version("2.4.10").build()
         )
 
         logger.info("Loaded all required libraries.")
@@ -96,26 +92,7 @@ class FastMachines : AbstractAddon(
     }
 
     override fun autoUpdate() {
-        if (pluginVersion.startsWith("Dev")) {
-            BlobBuildUpdater(this, file, githubRepo).start()
-        } else if (pluginVersion.startsWith("Build")) {
-            try {
-                // use updater in lib plugin
-                val clazz = Class.forName("net.guizhanss.minecraft.guizhanlib.updater.GuizhanUpdater")
-                val updaterStart = clazz.getDeclaredMethod(
-                    "start",
-                    Plugin::class.java,
-                    File::class.java,
-                    String::class.java,
-                    String::class.java,
-                    String::class.java
-                )
-                updaterStart.invoke(null, this, file, githubUser, githubRepo, githubBranch)
-            } catch (ignored: Exception) {
-                // use updater in lib
-                GuizhanBuildsUpdater.start(this, file, githubUser, githubRepo, githubBranch)
-            }
-        }
+        logger.info("Automatic updates are disabled for the Albion-maintained build.")
     }
 
     private fun setupListeners() {
@@ -152,6 +129,9 @@ class FastMachines : AbstractAddon(
             private set
 
         fun scheduler() = getScheduler()
+
+        fun useBukkitItemComparison(): Boolean =
+            !Companion::configService.isInitialized || configService.fmUseBukkitItemComparison.value
 
         fun log(level: Level, message: String) {
             instance.logger.log(level, message)

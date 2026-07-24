@@ -28,6 +28,7 @@ abstract class RecipeLoader(
     }
 
     open fun load() {
+        rawRecipes.clear()
         FastMachines.debug("Pre-processing recipes for ${machine.id}...")
         beforeLoad()
         FastMachines.debug("Loading recipes for ${machine.id}...")
@@ -130,7 +131,7 @@ abstract class RecipeLoader(
     private fun RawRecipe.inputKey(): String {
         val sortedInputChoices = inputs.map { choice ->
             choice.choices.entries
-                .sortedWith(compareBy({ it.key }, { it.value }))
+                .sortedWith(compareBy({ it.key.toString() }, { it.value }))
                 .joinToString(",") { "${it.key}x${it.value}" }
         }.sorted()
         return sortedInputChoices.joinToString("||")

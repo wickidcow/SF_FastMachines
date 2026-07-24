@@ -18,14 +18,14 @@ class ConfigService(plugin: FastMachines) {
     lateinit var fmUseBukkitItemComparison: ConfigField<Boolean>
 
     private val config = addonConfig(plugin, "config.yml") {
-        autoUpdate = boolean("auto-update", true)
+        autoUpdate = boolean("auto-update", false)
         debug = boolean("debug", false)
         lang = string("lang", FastMachines.DEFAULT_LANG)
-        enableResearches = boolean("enable-researches", false)
+        enableResearches = boolean("enable-researches", true)
         fmTickRate = int("fast-machines.tick-rate", 10, 5, 600)
         fmUseEnergy = boolean("fast-machines.use-energy", true)
         fmRequireSfResearch = boolean("fast-machines.require-sf-research", false)
-        fmUseBukkitItemComparison = boolean("fast-machines.use-bukkit-items", false)
+        fmUseBukkitItemComparison = boolean("fast-machines.use-bukkit-item-comparison", false)
     }
 
     init {

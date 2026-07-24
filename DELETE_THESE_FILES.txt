@@ -1,0 +1,6 @@
+Delete these obsolete files from the existing repository:
+
+- .github/workflows/blob-build-experimental.yml
+- .github/workflows/blob-build.yml
+- .github/workflows/ci.yml
+- src/main/kotlin/net/guizhanss/fastmachines/utils/reflections/RecipeExt.kt

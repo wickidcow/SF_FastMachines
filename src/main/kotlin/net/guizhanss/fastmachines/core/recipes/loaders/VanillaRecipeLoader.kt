@@ -6,7 +6,6 @@ import net.guizhanss.fastmachines.core.recipes.raw.RawRecipe
 import net.guizhanss.fastmachines.implementation.items.machines.base.BaseFastMachine
 import net.guizhanss.fastmachines.utils.consolidate
 import net.guizhanss.fastmachines.utils.items.asFMRecipeChoice
-import net.guizhanss.fastmachines.utils.reflections.resultItem
 import org.bukkit.Bukkit
 import org.bukkit.inventory.CookingRecipe
 import org.bukkit.inventory.Recipe
@@ -49,16 +48,16 @@ class VanillaRecipeLoader<T : Recipe>(
                 // now transform bukkit recipe choices to our recipe choices
                 val ingredients = ingredientMap.map { (choice, amount) -> choice.asFMRecipeChoice(amount) }
 
-                rawRecipes.add(RawRecipe(ingredients, listOf(recipe.resultItem)))
+                rawRecipes.add(RawRecipe(ingredients, listOf(recipe.result.clone())))
             }
 
             is ShapelessRecipe -> {
                 val ingredients = recipe.choiceList.map { it.asFMRecipeChoice() }.consolidate()
-                rawRecipes.add(RawRecipe(ingredients, listOf(recipe.resultItem)))
+                rawRecipes.add(RawRecipe(ingredients, listOf(recipe.result.clone())))
             }
 
             is CookingRecipe<*> -> {
-                rawRecipes.add(RawRecipe(listOf(recipe.inputChoice.asFMRecipeChoice()), listOf(recipe.result)))
+                rawRecipes.add(RawRecipe(listOf(recipe.inputChoice.asFMRecipeChoice()), listOf(recipe.result.clone())))
             }
         }
     }

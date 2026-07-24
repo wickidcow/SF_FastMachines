@@ -20,6 +20,7 @@ class SlimefunRegistryListener(plugin: FastMachines) : Listener {
             FastMachines.debug("Registering recipes for ${machine.javaClass.simpleName}")
             try {
                 machine.recipeLoader.load()
+                machine.lockRecipes()
             } catch (ex: Exception) {
                 FastMachines.log(
                     Level.SEVERE,

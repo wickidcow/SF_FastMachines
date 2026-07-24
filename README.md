@@ -1,31 +1,48 @@
-# FastMachines
+# FastMachines — Albion 26.2 Edition
 
-[English](README.md) | [中文](README.zh_CN.md)
+A maintained English fork of FastMachines for Paper 26.2 and the Albion/Gugu Slimefun API.
 
-This Slimefun addon extracts the manual machines from FinalTECH and made some changes to put them into a separate addon.  
-Fast machines are manual crafters that cost energy to run and can craft items with all shapeless recipes and support bulk crafting.
+FastMachines provides menu-based bulk crafting versions of vanilla, Slimefun, InfinityExpansion, InfinityExpansion2, and SlimeFrame machines. Ingredients can be placed anywhere in the input area, a valid output can be selected, and the machine crafts the requested quantity using materials and optional Slimefun energy.
 
-Credit: Final_Root
+## Included machines
 
-## Download
+- Fast Crafting Table and Fast Furnace
+- Fast Enhanced Crafting Table
+- Fast Grind Stone, Armor Forge, Ore Crusher, Compressor, Smeltery, and Pressure Chamber
+- Fast Magic Workbench, Ore Washer, Table Saw, Composter, Panning Machine, Juicer, and Ancient Altar
+- Optional InfinityExpansion and InfinityExpansion2 machines
+- Optional SlimeFrame Foundry
 
-Download from (either one is fine):
+## Albion maintenance changes
 
-- [Blob builds](https://blob.build/project/FastMachines)
-- [Guizhan Builds![Build Status](https://builds.guizhanss.com/ybw0014/FastMachines/master/badge.svg)](https://builds.guizhanss.com/ybw0014/FastMachines/master)
+- Paper 26.2 and Java 25 build target
+- Compiles against the exact `wickidcow/Slimefun4.1` fork
+- Main-thread-safe machine inventory processing
+- Correct bulk ingredient allocation and consumption
+- Current-energy checks and partial energy-limited bulk crafting
+- Fixed display-recipe quantities and Bukkit comparison setting
+- Hopper, cauldron, and anvil protection fixes for machine blocks
+- English default with no SlimefunTranslation requirement
+- Archived binary updater disabled
+- Automated GitHub build and tests
 
-## Supported plugins
+See [ALBION_26_2_NOTES.md](ALBION_26_2_NOTES.md) for the full technical change list.
 
-- [SlimefunTranslation](https://github.com/ybw0014/SlimefunTranslation): per player localization.
-- [InfinityExpansion](https://github.com/Mooy1/InfinityExpansion): extra fast machines for Infinity Expansion.
-- [SlimeFrame](https://github.com/VoperAD/SlimeFrame): extra fast machines for SlimeFrame.
-- [InfinityExpansion2](https://github.com/ybw0014/InfinityExpansion2): extra fast machines for Infinity Expansion 2.
+## Build
 
-## Thanks
+The included GitHub Actions workflow:
 
-Thanks to anyone who helped me during the development of this addon.
+1. Checks out `wickidcow/Slimefun4.1`.
+2. Publishes that Slimefun API to Maven Local.
+3. Builds and tests FastMachines using Java 25.
+4. Uploads the production JAR as an artifact.
 
-Thanks to [minecraft-heads.com](https://minecraft-heads.com/) for the heads used in this addon.
+## Configuration
 
-[![](https://minecraft-heads.com/images/banners/minecraft-heads_fullbanner_468x60.png)](https://minecraft-heads.com/) 
+The default language is `en-US`. SlimefunTranslation is optional and is not required for English players.
 
+Fast machine energy use, research requirements, tick rate, and item-comparison behavior are configurable in `config.yml`.
+
+## Credits
+
+FastMachines was originally created by ybw0014 from machine concepts and code originating in FinalTECH by Final_Root. This downstream fork preserves the original GPL-3.0 license and contributor attribution.

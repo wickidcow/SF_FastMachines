@@ -34,7 +34,7 @@ fun ItemWrapper?.isSimilarTo(other: ItemStack?, checkLore: Boolean = false): Boo
     if (this == null || other == null) return false
 
     // bukkit item comparison
-    if (FastMachines.configService.fmUseBukkitItemComparison.value) {
+    if (FastMachines.useBukkitItemComparison()) {
         return baseItem.isSimilar(other)
     }
 
@@ -195,6 +195,6 @@ fun Collection<ItemStack?>.countItems(): Map<ItemWrapper, Int> {
         result[wrapper] = (result[wrapper] ?: 0) + item.amount
     }
 
-    return result.toSortedMap()
+    return result
 }
 

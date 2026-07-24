@@ -1,0 +1,33 @@
+Extract this archive over the current FastMachines-master source.
+It contains every added or modified file from the Albion 26.2 patch.
+
+- .github/workflows/build.yml
+- ALBION_26_2_NOTES.md
+- README.md
+- build.gradle.kts
+- gradle.properties
+- gradle/wrapper/gradle-wrapper.properties
+- scripts/verify_english.py
+- src/main/kotlin/net/guizhanss/fastmachines/FastMachines.kt
+- src/main/kotlin/net/guizhanss/fastmachines/core/items/ItemWrapper.kt
+- src/main/kotlin/net/guizhanss/fastmachines/core/recipes/RecipeCrafting.kt
+- src/main/kotlin/net/guizhanss/fastmachines/core/recipes/choices/ExactChoice.kt
+- src/main/kotlin/net/guizhanss/fastmachines/core/recipes/choices/MultipleChoice.kt
+- src/main/kotlin/net/guizhanss/fastmachines/core/recipes/loaders/RecipeLoader.kt
+- src/main/kotlin/net/guizhanss/fastmachines/core/recipes/loaders/SlimefunDisplayRecipeLoader.kt
+- src/main/kotlin/net/guizhanss/fastmachines/core/recipes/loaders/VanillaRecipeLoader.kt
+- src/main/kotlin/net/guizhanss/fastmachines/core/services/ConfigService.kt
+- src/main/kotlin/net/guizhanss/fastmachines/implementation/items/machines/base/BaseFastMachine.kt
+- src/main/kotlin/net/guizhanss/fastmachines/implementation/items/machines/base/FastMachineCache.kt
+- src/main/kotlin/net/guizhanss/fastmachines/implementation/listeners/CauldronListener.kt
+- src/main/kotlin/net/guizhanss/fastmachines/implementation/listeners/GravityListener.kt
+- src/main/kotlin/net/guizhanss/fastmachines/implementation/listeners/HopperListener.kt
+- src/main/kotlin/net/guizhanss/fastmachines/implementation/listeners/SlimefunRegistryListener.kt
+- src/main/kotlin/net/guizhanss/fastmachines/implementation/tasks/FastMachineTickingTask.kt
+- src/main/kotlin/net/guizhanss/fastmachines/utils/MachineUtils.kt
+- src/main/kotlin/net/guizhanss/fastmachines/utils/RecipeChoiceExt.kt
+- src/main/kotlin/net/guizhanss/fastmachines/utils/items/ItemExt.kt
+- src/main/resources/config.yml
+- src/main/resources/plugin.yml
+- src/test/kotlin/net/guizhanss/fastmachines/core/items/ItemWrapperTest.kt
+- src/test/kotlin/net/guizhanss/fastmachines/core/recipes/RecipeCraftingTest.kt

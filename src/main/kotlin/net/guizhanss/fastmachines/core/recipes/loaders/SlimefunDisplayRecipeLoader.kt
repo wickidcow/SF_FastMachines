@@ -24,7 +24,8 @@ class SlimefunDisplayRecipeLoader(
         require(recipes.size % 2 == 0) { "The item $id has invalid display recipe list." }
 
         for (i in recipes.indices step 2) {
-            val input = listOf(ExactChoice(ItemWrapper.of(recipes[i])))
+            val inputItem = recipes[i]
+            val input = listOf(ExactChoice(ItemWrapper.of(inputItem), inputItem.amount.coerceAtLeast(1)))
             val output = listOf(recipes[i + 1])
 
             rawRecipes.add(RawRecipe(input, output))

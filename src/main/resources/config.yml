@@ -1,31 +1,26 @@
-# Enable auto update
-auto-update: true
+# Automatic binary updates are disabled in the Albion fork so upstream builds cannot overwrite it.
+auto-update: false
 
-# The locale of the plugin.
-# Available languages: https://github.com/ybw0014/FastMachines/tree/master/LOCALES.md
+# Player-facing language.
 lang: en-US
 
 # Enable researches for items in this addon.
 enable-researches: true
 
-# Fast machines related settings.
 fast-machines:
-  # Determine how often the fast machines tick, in Minecraft ticks (1 second = 20 ticks).
-  # It affects how often the machines update their available recipes.
-  # The fast machines don't tick on Slimefun tickers.
-  # Valid values: 5 - 600.
+  # How often menus recalculate recipes, in server ticks (20 ticks = 1 second).
+  # This task now runs safely on the main server thread.
   tick-rate: 10
 
-  # Whether to use energy on crafting.
-  # Disabling this option will change the recipes of fast machines. (Fast Machine Core is removed)
-  # The energy per craft / capacity is defined per machine in /plugins/Slimefun/Items.yml
+  # Whether crafting consumes Slimefun energy.
   use-energy: true
 
-  # Whether crafting a Slimefun item needs it to be unlocked first.
+  # Whether the player must have researched a Slimefun output before crafting it.
   require-sf-research: false
 
-  # Whether to use ItemStack's own isSimilar to compare items.
+  # Use Bukkit's strict ItemStack comparison instead of FastMachines' compatibility matcher.
+  # Leave false for the broadest compatibility with Slimefun/addon recipe ingredients.
   use-bukkit-item-comparison: false
 
-# Print debug messages.
+# Print additional diagnostic messages.
 debug: false

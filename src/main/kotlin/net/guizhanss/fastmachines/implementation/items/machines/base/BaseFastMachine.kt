@@ -68,7 +68,6 @@ abstract class BaseFastMachine(
     }
 
     internal fun lockRecipes() {
-        check(!recipeLocked) { "Recipes are already locked" }
         recipeLocked = true
     }
 

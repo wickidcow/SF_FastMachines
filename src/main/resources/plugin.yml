@@ -1,0 +1,9 @@
+name: FastMachines
+version: '${version}'
+main: net.guizhanss.fastmachines.FastMachines
+api-version: '26.2'
+authors: [ybw0014, AlbionMC]
+description: Bulk crafting Slimefun machines maintained for Paper 26.2
+depend: [Slimefun]
+softdepend: [GuizhanLibPlugin, SlimefunTranslation, InfinityExpansion, SlimeFrame, SlimeHUD, InfinityExpansion2]
+loadbefore: [SlimeCustomizer, RykenSlimeCustomizer, SlimeFunRecipe]

@@ -28,10 +28,13 @@ class HopperListener(plugin: FastMachines) : Listener {
     }
 
     @EventHandler
-    fun onMoveItemIntoHopper(e: InventoryMoveItemEvent) {
-        val loc = e.destination.location ?: return
+    fun onMoveItem(e: InventoryMoveItemEvent) {
+        val sourceBlocked = e.source.type == InventoryType.HOPPER &&
+            e.source.location?.let { BlockStorage.check(it) is NotAHopper } == true
+        val destinationBlocked = e.destination.type == InventoryType.HOPPER &&
+            e.destination.location?.let { BlockStorage.check(it) is NotAHopper } == true
 
-        if (e.destination.type == InventoryType.HOPPER && BlockStorage.check(loc) is NotAHopper) {
+        if (sourceBlocked || destinationBlocked) {
             e.isCancelled = true
         }
     }
