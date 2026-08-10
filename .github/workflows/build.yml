@@ -3,12 +3,13 @@ name: Build FastMachines 26.2
 on:
   push:
     branches: [master]
+    tags: ['v*']
   pull_request:
     branches: [master]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-fastmachines:
@@ -59,9 +60,32 @@ jobs:
           test "${#jars[@]}" -eq 1
           echo "FASTMACHINES_JAR=${jars[0]}" >> "$GITHUB_ENV"
 
-      - name: Upload FastMachines JAR
+      - name: Stage SF_FastMachines.jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp "$FASTMACHINES_JAR" dist/SF_FastMachines.jar
+          test -s dist/SF_FastMachines.jar
+          sha256sum dist/SF_FastMachines.jar
+
+      - name: Upload SF_FastMachines.jar
         uses: actions/upload-artifact@v7
         with:
-          name: FastMachines-26.2-Albion-${{ github.run_number }}
-          path: ${{ env.FASTMACHINES_JAR }}
+          name: SF_FastMachines
+          path: dist/SF_FastMachines.jar
           if-no-files-found: error
+
+      - name: Publish direct JAR release asset
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          JAR="dist/SF_FastMachines.jar"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$JAR" --clobber
+          else
+            gh release create "$TAG" "$JAR" --generate-notes --title "FastMachines $TAG"
+          fi
