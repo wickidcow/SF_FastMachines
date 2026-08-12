@@ -44,8 +44,6 @@ Notable work includes:
 - disabling the archived binary self-updater;
 - automated GitHub build and validation.
 
-See `ALBION_26_2_NOTES.md` for historical technical notes; the maintained project itself is branded **Slimefun Legacy**, not as a separate Albion edition.
-
 ## ❤️ Credits & project lineage
 
 FastMachines has several important layers of history and all of them deserve credit:
