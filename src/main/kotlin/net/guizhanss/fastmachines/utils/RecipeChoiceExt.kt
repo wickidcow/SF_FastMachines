@@ -10,8 +10,19 @@ fun List<RecipeChoice>.consolidate(): List<RecipeChoice> {
     val multipleChoices = filterIsInstance<MultipleChoice>()
     val unknownChoices = filterNot { it is ExactChoice || it is MultipleChoice }
 
-    val mergedExact = exactChoices.groupBy { it.item }.map { (item, entries) ->
-        ExactChoice(item, entries.sumOf { it.amount })
+    // Keep consolidated requirements representable by real inventory stacks. Recipes such as
+    // repeated low-stack-size ingredients can otherwise produce one impossible ExactChoice.
+    val mergedExact = exactChoices.groupBy { it.item }.flatMap { (item, entries) ->
+        val totalAmount = entries.sumOf { it.amount }
+        val maxStackSize = item.baseItem.maxStackSize.coerceAtLeast(1)
+        buildList {
+            var remaining = totalAmount
+            while (remaining > 0) {
+                val amount = minOf(remaining, maxStackSize)
+                add(ExactChoice(item, amount))
+                remaining -= amount
+            }
+        }
     }
 
     val mergedMultiple = multipleChoices
