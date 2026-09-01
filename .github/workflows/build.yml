@@ -49,17 +49,18 @@ jobs:
         run: |
           set -euo pipefail
           grep -Fq "api-version: '1.21.11'" src/main/resources/plugin.yml
-          grep -Fq 'JvmTarget.JVM_21' build.gradle.kts
-          grep -Fq 'options.release.set(21)' build.gradle.kts
+          grep -Fq 'orElse("21")' build.gradle.kts
+          grep -Fq 'options.release.set(targetJvm)' build.gradle.kts
+          grep -Fq 'JvmTarget.fromTarget' build.gradle.kts
           grep -Fq '1.21.11-R0.1-SNAPSHOT' build.gradle.kts
       - name: Verify Paper/Purpur 1.21.11 build
         run: |
           chmod +x gradlew
-          ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PprojectVersion=1.0.2 --no-daemon
+          ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.2 --no-daemon
       - name: Verify Paper/Purpur 26.2 build
-        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.2.build.+ -PprojectVersion=1.0.2 --no-daemon
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.2 --no-daemon
       - name: Build universal release JAR from 1.21.11 baseline
-        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PprojectVersion=1.0.2 --no-daemon
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.2 --no-daemon
       - name: Locate production JAR
         shell: bash
         run: |
@@ -92,7 +93,7 @@ jobs:
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then TAG="$GITHUB_REF_NAME"; else TAG="v${LEGACY_ARTIFACT_VERSION}"; fi
           JAR="dist/${OUTPUT_NAME}"
-          NOTES="Compatibility release: FastMachines now emits Java/Kotlin 21 bytecode and is compile-verified against Paper/Purpur 1.21.11 and 26.2 while retaining the existing Slimefun Legacy and English-source compatibility work."
+          NOTES="Compatibility release: FastMachines now emits Java/Kotlin 21 bytecode for the universal JAR, is compiled against Minecraft 1.21.11 at JVM 21, and is separately source-verified against Paper 26.2 at JVM 25. Existing Slimefun Legacy and English-source compatibility work remains included."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$JAR" --clobber
           else
