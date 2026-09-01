@@ -19,6 +19,7 @@ repositories {
 
 val slimefunVersion = providers.gradleProperty("slimefunVersion").orElse("DEV-SNAPSHOT")
 val paperVersion = providers.gradleProperty("paperVersion").orElse("1.21.11-R0.1-SNAPSHOT")
+val targetJvm = providers.gradleProperty("targetJvm").orElse("21").get().toInt()
 
 dependencies {
     fun compileOnlyAndTestImpl(dependencyNotation: Any) {
@@ -51,19 +52,19 @@ val mainPackage = "net.guizhanss.fastmachines"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(25))
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.toVersion(targetJvm)
+    targetCompatibility = JavaVersion.toVersion(targetJvm)
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(21)
+    options.release.set(targetJvm)
 }
 
 kotlin {
     jvmToolchain(25)
     compilerOptions {
         javaParameters = true
-        jvmTarget = JvmTarget.JVM_21
+        jvmTarget = JvmTarget.fromTarget(targetJvm.toString())
     }
 }
 
