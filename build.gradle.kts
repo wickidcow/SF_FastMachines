@@ -18,6 +18,7 @@ repositories {
 }
 
 val slimefunVersion = providers.gradleProperty("slimefunVersion").orElse("DEV-SNAPSHOT")
+val paperVersion = providers.gradleProperty("paperVersion").orElse("1.21.11-R0.1-SNAPSHOT")
 
 dependencies {
     fun compileOnlyAndTestImpl(dependencyNotation: Any) {
@@ -27,7 +28,7 @@ dependencies {
 
     compileOnly(kotlin("stdlib"))
     compileOnly(kotlin("reflect"))
-    compileOnlyAndTestImpl("io.papermc.paper:paper-api:26.2.build.+")
+    compileOnlyAndTestImpl("io.papermc.paper:paper-api:${paperVersion.get()}")
     compileOnlyAndTestImpl("com.github.slimefun:Slimefun:${slimefunVersion.get()}")
     compileOnly("net.guizhanss:SlimefunTranslation:e6da231617") { isTransitive = false }
     compileOnly("com.github.schntgaispock:SlimeHUD:1.3.0") { isTransitive = false }
@@ -43,22 +44,26 @@ dependencies {
 }
 
 group = "net.guizhanss"
-version = providers.gradleProperty("projectVersion").orElse("26.2-Albion-SNAPSHOT").get()
-description = "FastMachines maintained for AlbionMC, Paper 26.2 and Gugu Slimefun"
+version = providers.gradleProperty("projectVersion").orElse("1.0.2-SNAPSHOT").get()
+description = "FastMachines maintained for Slimefun Legacy on Minecraft 1.21.11 through 26.2"
 
 val mainPackage = "net.guizhanss.fastmachines"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(25))
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(21)
 }
 
 kotlin {
     jvmToolchain(25)
     compilerOptions {
         javaParameters = true
-        jvmTarget = JvmTarget.JVM_25
+        jvmTarget = JvmTarget.JVM_21
     }
 }
 
@@ -86,7 +91,6 @@ tasks.processResources {
         expand("version" to project.version)
     }
 }
-
 
 tasks.runServer {
     downloadPlugins {
