@@ -84,10 +84,9 @@ class FastMachineCache(
             recipe.maxCraftableAmount(inputs)
         }.filterValues { it > 0 }
 
-        if (selectedRecipe !in availableRecipes) {
-            selectedRecipe = null
-        }
-
+        // Keep the player's selected recipe when materials temporarily run out.
+        // The craft button will report that materials are missing and the same recipe
+        // becomes immediately craftable again when its inputs are replenished.
         FastMachines.debug("Available recipes: $availableRecipes")
         needUpdateMenu = true
     }
