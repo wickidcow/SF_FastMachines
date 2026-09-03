@@ -45,7 +45,7 @@ dependencies {
 }
 
 group = "net.guizhanss"
-version = providers.gradleProperty("projectVersion").orElse("1.0.2-SNAPSHOT").get()
+version = providers.gradleProperty("projectVersion").orElse("1.0.3-SNAPSHOT").get()
 description = "FastMachines maintained for Slimefun Legacy on Minecraft 1.21.11 through 26.2"
 
 val mainPackage = "net.guizhanss.fastmachines"
@@ -80,6 +80,7 @@ tasks.shadowJar {
     doRelocate("org.bstats")
     doRelocate("io.papermc.lib", "paperlib")
     archiveClassifier = ""
+    archiveFileName.set("SF_FastMachines${project.version}.jar")
 }
 
 tasks.build {
