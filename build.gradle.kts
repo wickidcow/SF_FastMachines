@@ -45,8 +45,8 @@ dependencies {
 }
 
 group = "net.guizhanss"
-version = providers.gradleProperty("projectVersion").orElse("1.0.3-SNAPSHOT").get()
-description = "FastMachines maintained for Slimefun Legacy on Minecraft 1.21.11 through 26.2"
+version = providers.gradleProperty("projectVersion").orElse("1.0.4").get()
+description = "FastMachines maintained for Slimefun Legacy on Minecraft 1.21.11 through 26.3"
 
 val mainPackage = "net.guizhanss.fastmachines"
 
