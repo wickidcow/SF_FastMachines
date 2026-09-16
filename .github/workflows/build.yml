@@ -62,15 +62,22 @@ jobs:
         run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.3-rc-3.build.1-alpha -PtargetJvm=25 -PprojectVersion=1.0.4 --no-daemon
       - name: Build universal release JAR from 1.21.11 baseline
         run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.4 --no-daemon
-      - name: Stage and verify canonical JAR
+      - name: Stage and verify canonical shaded JAR
         shell: bash
         run: |
           set -euo pipefail
           JAR="build/libs/${OUTPUT_NAME}"
           test -s "$JAR"
+          test "$(find build/libs -maxdepth 1 -type f -name '*.jar' | wc -l)" -eq 1
           PLUGIN_VERSION=$(unzip -p "$JAR" plugin.yml | awk -F': *' '/^version:/ {gsub(/["'"'"']/,"",$2); print $2; exit}')
           test "$PLUGIN_VERSION" = "$VERSION"
           if printf '%s\n' "$PLUGIN_VERSION" | grep -Eiq '(legacy|english|snapshot)'; then exit 1; fi
+          jar tf "$JAR" | grep -Fxq 'net/guizhanss/fastmachines/libs/guizhanlib/slimefun/addon/AbstractAddon.class'
+          if jar tf "$JAR" | grep -q '^net/guizhanss/guizhanlib/'; then
+            echo 'Unrelocated GuizhanLib classes detected in distributable JAR.' >&2
+            exit 1
+          fi
+          javap -classpath "$JAR" net.guizhanss.fastmachines.FastMachines | grep -Fq 'extends net.guizhanss.fastmachines.libs.guizhanlib.slimefun.addon.AbstractAddon'
           mkdir -p dist
           cp "$JAR" "dist/${OUTPUT_NAME}"
           javap -verbose -classpath "dist/${OUTPUT_NAME}" net.guizhanss.fastmachines.FastMachines | grep -Fq 'major version: 65'
