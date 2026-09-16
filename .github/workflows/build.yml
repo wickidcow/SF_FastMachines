@@ -12,8 +12,8 @@ permissions:
   contents: write
 
 env:
-  LEGACY_ARTIFACT_VERSION: "1.0.3"
-  OUTPUT_NAME: "SF_FastMachines1.0.3.jar"
+  LEGACY_ARTIFACT_VERSION: "1.0.4"
+  OUTPUT_NAME: "SF_FastMachines1.0.4.jar"
 
 concurrency:
   group: fastmachines-${{ github.workflow }}-${{ github.ref }}
@@ -53,21 +53,24 @@ jobs:
           grep -Fq 'options.release.set(targetJvm)' build.gradle.kts
           grep -Fq 'JvmTarget.fromTarget' build.gradle.kts
           grep -Fq '1.21.11-R0.1-SNAPSHOT' build.gradle.kts
+          grep -Fq 'SF_FastMachines${project.version}.jar' build.gradle.kts
           grep -Fq 'Keep the player' src/main/kotlin/net/guizhanss/fastmachines/implementation/items/machines/base/FastMachineCache.kt
       - name: Verify Paper/Purpur 1.21.11 build
         run: |
           chmod +x gradlew
-          ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.3 --no-daemon
+          ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.4 --no-daemon
       - name: Verify Paper/Purpur 26.2 build
-        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.3 --no-daemon
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.4 --no-daemon
+      - name: Verify Paper 26.3 alpha build
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.3-rc-3.build.1-alpha -PtargetJvm=25 -PprojectVersion=1.0.4 --no-daemon
       - name: Build universal release JAR from 1.21.11 baseline
-        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.3 --no-daemon
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.4 --no-daemon
       - name: Locate production JAR
         shell: bash
         run: |
-          mapfile -t jars < <(find build/libs -maxdepth 1 -type f -name 'SF_FastMachines*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
-          test "${#jars[@]}" -eq 1
-          echo "FASTMACHINES_JAR=${jars[0]}" >> "$GITHUB_ENV"
+          JAR="build/libs/${OUTPUT_NAME}"
+          test -s "$JAR"
+          echo "FASTMACHINES_JAR=$JAR" >> "$GITHUB_ENV"
       - name: Stage and verify versioned JAR
         shell: bash
         run: |
@@ -82,6 +85,7 @@ jobs:
       - name: Upload raw JAR artifact
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.OUTPUT_NAME }}
           path: dist/${{ env.OUTPUT_NAME }}
           archive: false
           if-no-files-found: error
@@ -94,7 +98,7 @@ jobs:
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then TAG="$GITHUB_REF_NAME"; else TAG="v${LEGACY_ARTIFACT_VERSION}"; fi
           JAR="dist/${OUTPUT_NAME}"
-          NOTES="FastMachines 1.0.3: keeps the selected recipe after the final ingredients are consumed, so players can refill the machine and continue crafting without selecting the recipe again. Java 21 universal bytecode and 1.21.11 through 26.2 compatibility checks remain included."
+          NOTES="FastMachines 1.0.4 adds Paper 26.3 alpha compile validation while preserving the Java 21 universal release JAR, Minecraft/Paper 1.21.11 compatibility, and Paper/Purpur 26.2 as the primary production target. The Gradle build now emits ${OUTPUT_NAME} directly without a SNAPSHOT or legacy filename."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$JAR" --clobber
           else
