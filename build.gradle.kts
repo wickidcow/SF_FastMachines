@@ -68,6 +68,12 @@ kotlin {
     }
 }
 
+// Never emit a second, thin plugin JAR. The distributable plugin must always be the
+// shaded JAR below so GuizhanLib cannot leak as an external runtime class dependency.
+tasks.named("jar") {
+    enabled = false
+}
+
 tasks.shadowJar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     fun doRelocate(from: String, to: String? = null) {
