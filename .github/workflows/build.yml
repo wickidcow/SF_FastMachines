@@ -25,6 +25,10 @@ jobs:
     steps:
       - name: Check out FastMachines
         uses: actions/checkout@v6
+      - name: Assert historical release mutation is permanently disabled
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_legacy_publish_step.py' -v
+          python3 scripts/check_legacy_publish_step.py .github/workflows/build.yml
       - name: Verify English player-facing source
         run: python3 scripts/verify_english.py .
       - name: Check out Slimefun Legacy
@@ -89,8 +93,11 @@ jobs:
           path: dist/${{ env.OUTPUT_NAME }}
           archive: false
           if-no-files-found: error
+      # RETIRED: historic v1.0.4 is immutable, and default-branch builds
+      # must never upload with --clobber. A new distinct release needs a
+      # separately reviewed exact-source, native-gated publication workflow.
       - name: Publish canonical raw JAR release asset
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') || github.ref_name == github.event.repository.default_branch
+        if: false
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
