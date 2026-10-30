@@ -21,7 +21,7 @@ def verify(workflow: str) -> None:
         raise ValueError("policy regression must execute on every CI build")
     if "test_immutable_release_policy.py' -v" not in before:
         raise ValueError("existing immutable publisher tests must remain")
-    if not compile_steps.startswith("        run: ./gradlew clean build "):
+    if not compile_steps.startswith("        run: |\n          chmod +x gradlew\n          ./gradlew clean build "):
         raise ValueError("minimum baseline must compile actual sources")
     for fragment in (MINIMUM, SUPPORTED, PRIMARY):
         if compile_steps.count(fragment) != 1:
