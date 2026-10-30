@@ -27,6 +27,8 @@ jobs:
         uses: actions/checkout@v6
       - name: Verify immutable release publication policy
         run: python3 -m unittest discover -s scripts -p 'test_immutable_release_policy.py' -v
+      - name: Verify stable Paper 26.3 compile policy
+        run: python3 -m unittest discover -s scripts -p 'test_stable_paper_compile_policy.py' -v
       - name: Verify English player-facing source
         run: python3 scripts/verify_english.py .
       - name: Check out Slimefun Legacy
@@ -60,8 +62,8 @@ jobs:
           ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.4 --no-daemon
       - name: Verify Paper/Purpur 26.2 build
         run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.4 --no-daemon
-      - name: Verify Paper 26.3 alpha build
-        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.3-rc-3.build.1-alpha -PtargetJvm=25 -PprojectVersion=1.0.4 --no-daemon
+      - name: Verify stable Paper 26.3 primary API source compatibility
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.3.build.230-stable -PtargetJvm=25 -PprojectVersion=1.0.4 --no-daemon
       - name: Build universal release JAR from 1.21.11 baseline
         run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.4 --no-daemon
       - name: Stage and verify canonical shaded JAR
