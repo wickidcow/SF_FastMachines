@@ -107,6 +107,12 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             release_shell(self.workflow.replace(before, after, 1))
 
+    def mutate_release(self, before: str, after: str):
+        prefix, release = self.workflow.split(STEP, 1)
+        self.assertEqual(release.count(before), 1, before)
+        with self.assertRaises(ValueError):
+            release_shell(prefix + STEP + release.replace(before, after, 1))
+
     def test_current_policy(self):
         self.assertIn("set -euo pipefail", release_shell(self.workflow))
 
@@ -127,7 +133,7 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
                     'if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then')
 
     def test_existing_release_must_exit(self):
-        self.mutate("            exit 1\n", "            true\n")
+        self.mutate_release("            exit 1\n", "            true\n")
 
     def test_existing_release_cannot_be_overwritten(self):
         self.mutate('gh release create "$TAG" "$JAR" --verify-tag --repo "$GITHUB_REPOSITORY"',
@@ -142,7 +148,7 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
                     'gh release create "$TAG" "$JAR" --repo "$GITHUB_REPOSITORY"')
 
     def test_jar_must_exist(self):
-        self.mutate('test -s "$JAR"', 'test -n "$JAR"')
+        self.mutate_release('test -s "$JAR"', 'test -n "$JAR"')
 
     def test_policy_suite_cannot_be_skipped(self):
         self.mutate(POLICY_RUN, "run: echo release-policy-tests-skipped")
