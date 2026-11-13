@@ -79,7 +79,7 @@ def run_fake_release(shell: str, ref: str, exists: bool, jar_present: bool = Tru
         fake.chmod(0o755)
         (root / "dist").mkdir()
         if jar_present:
-            (root / "dist/SF_FastMachines1.0.4.jar").write_bytes(b"test fixture, not a plugin")
+            (root / "dist/SF_FastMachines1.0.5.jar").write_bytes(b"test fixture, not a plugin")
         log = root / "calls.txt"
         env = dict(os.environ)
         env.update({
@@ -88,8 +88,8 @@ def run_fake_release(shell: str, ref: str, exists: bool, jar_present: bool = Tru
             "FAKE_RELEASE_EXISTS": "1" if exists else "0",
             "GITHUB_REF": ref,
             "GITHUB_REPOSITORY": "wickidcow/SF_FastMachines",
-            "VERSION": "1.0.4",
-            "OUTPUT_NAME": "SF_FastMachines1.0.4.jar",
+            "VERSION": "1.0.5",
+            "OUTPUT_NAME": "SF_FastMachines1.0.5.jar",
         })
         result = subprocess.run(["bash", "-c", shell], cwd=root, env=env,
                                 text=True, capture_output=True, check=False)
@@ -154,14 +154,14 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
         self.mutate(POLICY_RUN, "run: echo release-policy-tests-skipped")
 
     def test_new_matching_tag_can_create_once(self):
-        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.4", False)
+        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.6", False)
         self.assertEqual(code, 0)
         self.assertEqual(len(calls), 2)
-        self.assertTrue(calls[0].startswith("release view v1.0.4 "))
-        self.assertIn("release create v1.0.4 dist/SF_FastMachines1.0.4.jar --verify-tag", calls[1])
+        self.assertTrue(calls[0].startswith("release view v1.0.5 "))
+        self.assertIn("release create v1.0.5 dist/SF_FastMachines1.0.5.jar --verify-tag", calls[1])
 
     def test_existing_release_is_never_modified(self):
-        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.4", True)
+        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.5", True)
         self.assertNotEqual(code, 0)
         self.assertEqual(len(calls), 1)
         self.assertTrue(calls[0].startswith("release view "))
@@ -177,7 +177,7 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
         self.assertEqual(calls, [])
 
     def test_missing_jar_never_calls_gh(self):
-        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.4", False, False)
+        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.5", False, False)
         self.assertNotEqual(code, 0)
         self.assertEqual(calls, [])
 
