@@ -2,15 +2,18 @@
 
 package net.guizhanss.fastmachines.core.recipes.loaders
 
+import net.guizhanss.fastmachines.FastMachines
 import net.guizhanss.fastmachines.core.recipes.raw.RawRecipe
 import net.guizhanss.fastmachines.implementation.items.machines.base.BaseFastMachine
 import net.guizhanss.fastmachines.utils.consolidate
 import net.guizhanss.fastmachines.utils.items.asFMRecipeChoice
 import org.bukkit.Bukkit
+import org.bukkit.Keyed
 import org.bukkit.inventory.CookingRecipe
 import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ShapedRecipe
 import org.bukkit.inventory.ShapelessRecipe
+import java.util.logging.Level
 import org.bukkit.inventory.RecipeChoice as BukkitRecipeChoice
 
 /**
@@ -27,7 +30,18 @@ class VanillaRecipeLoader<T : Recipe>(
         while (iterator.hasNext()) {
             val recipe = iterator.next()
             if (recipeClass.isInstance(recipe)) {
-                registerRecipe(recipe as T)
+                try {
+                    registerRecipe(recipe as T)
+                } catch (e: Exception) {
+                    // A malformed or unsupported addon recipe must not prevent every other
+                    // vanilla/ItemsAdder recipe from loading into this machine.
+                    val recipeId = (recipe as? Keyed)?.key?.toString() ?: recipe.javaClass.name
+                    FastMachines.log(
+                        Level.WARNING,
+                        e,
+                        "Skipping recipe $recipeId for ${machine.id}; other recipes will still load."
+                    )
+                }
             }
         }
     }
