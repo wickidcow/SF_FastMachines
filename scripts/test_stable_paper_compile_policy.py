@@ -7,9 +7,9 @@ WORKFLOW = Path(__file__).resolve().parents[1] / ".github/workflows/build.yml"
 START = "      - name: Verify Paper/Purpur 1.21.11 build\n"
 END = "      - name: Build universal release JAR from 1.21.11 baseline\n"
 POLICY_RUN = "run: python3 -m unittest discover -s scripts -p 'test_stable_paper_compile_policy.py' -v"
-MINIMUM = "-PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.4"
-SUPPORTED = "-PpaperVersion=26.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.4"
-PRIMARY = "-PpaperVersion=26.3.build.230-stable -PtargetJvm=25 -PprojectVersion=1.0.4"
+MINIMUM = "-PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.5"
+SUPPORTED = "-PpaperVersion=26.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.5"
+PRIMARY = "-PpaperVersion=26.3.build.230-stable -PtargetJvm=25 -PprojectVersion=1.0.5"
 
 
 def verify(workflow: str) -> None:
@@ -56,19 +56,19 @@ class StablePaperCompilePolicyTest(unittest.TestCase):
         verify(self.workflow)
 
     def test_alpha_is_rejected(self):
-        self.mutate(PRIMARY, "-PpaperVersion=26.3-rc-3.build.1-alpha -PtargetJvm=25 -PprojectVersion=1.0.4")
+        self.mutate(PRIMARY, "-PpaperVersion=26.3-rc-3.build.1-alpha -PtargetJvm=25 -PprojectVersion=1.0.5")
 
     def test_beta_is_rejected(self):
-        self.mutate(PRIMARY, "-PpaperVersion=26.3.build.140-beta -PtargetJvm=25 -PprojectVersion=1.0.4")
+        self.mutate(PRIMARY, "-PpaperVersion=26.3.build.140-beta -PtargetJvm=25 -PprojectVersion=1.0.5")
 
     def test_unbounded_primary_is_rejected(self):
-        self.mutate(PRIMARY, "-PpaperVersion=26.3.build.+ -PtargetJvm=25 -PprojectVersion=1.0.4")
+        self.mutate(PRIMARY, "-PpaperVersion=26.3.build.+ -PtargetJvm=25 -PprojectVersion=1.0.5")
 
     def test_minimum_api_floor_must_remain(self):
         self.mutate(START, "      - name: Skip minimum Paper 1.21.11 compile\n")
 
     def test_262_supported_lane_must_remain(self):
-        self.mutate(SUPPORTED, "-PpaperVersion=26.1.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.4")
+        self.mutate(SUPPORTED, "-PpaperVersion=26.1.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.5")
 
     def test_primary_lane_must_execute_build(self):
         self.mutate("      - name: Verify stable Paper 26.3 primary API source compatibility\n        run: ./gradlew clean build ",
