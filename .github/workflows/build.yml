@@ -12,8 +12,8 @@ permissions:
   contents: write
 
 env:
-  VERSION: "1.0.4"
-  OUTPUT_NAME: "SF_FastMachines1.0.4.jar"
+  VERSION: "1.0.5"
+  OUTPUT_NAME: "SF_FastMachines1.0.5.jar"
 
 concurrency:
   group: fastmachines-${{ github.workflow }}-${{ github.ref }}
@@ -54,18 +54,18 @@ jobs:
           set -euo pipefail
           [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+)*$ ]]
           test "$OUTPUT_NAME" = "SF_FastMachines${VERSION}.jar"
-          grep -Fq 'projectVersion=1.0.4' gradle.properties
+          grep -Fq 'projectVersion=1.0.5' gradle.properties
           grep -Fq 'SF_FastMachines${project.version}.jar' build.gradle.kts
       - name: Verify Paper/Purpur 1.21.11 build
         run: |
           chmod +x gradlew
-          ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.4 --no-daemon
+          ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.5 --no-daemon
       - name: Verify Paper/Purpur 26.2 build
-        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.4 --no-daemon
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.2.build.+ -PtargetJvm=25 -PprojectVersion=1.0.5 --no-daemon
       - name: Verify stable Paper 26.3 primary API source compatibility
-        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.3.build.230-stable -PtargetJvm=25 -PprojectVersion=1.0.4 --no-daemon
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=26.3.build.230-stable -PtargetJvm=25 -PprojectVersion=1.0.5 --no-daemon
       - name: Build universal release JAR from 1.21.11 baseline
-        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.4 --no-daemon
+        run: ./gradlew clean build -PslimefunVersion=ALBION-SNAPSHOT -PpaperVersion=1.21.11-R0.1-SNAPSHOT -PtargetJvm=21 -PprojectVersion=1.0.5 --no-daemon
       - name: Stage and verify canonical shaded JAR
         shell: bash
         run: |
