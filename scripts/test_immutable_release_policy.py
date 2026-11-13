@@ -154,7 +154,7 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
         self.mutate(POLICY_RUN, "run: echo release-policy-tests-skipped")
 
     def test_new_matching_tag_can_create_once(self):
-        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.6", False)
+        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.5", False)
         self.assertEqual(code, 0)
         self.assertEqual(len(calls), 2)
         self.assertTrue(calls[0].startswith("release view v1.0.5 "))
@@ -167,7 +167,7 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
         self.assertTrue(calls[0].startswith("release view "))
 
     def test_mismatched_tag_never_calls_gh(self):
-        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.5", False)
+        code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.6", False)
         self.assertNotEqual(code, 0)
         self.assertEqual(calls, [])
 
