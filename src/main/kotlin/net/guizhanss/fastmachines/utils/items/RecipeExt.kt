@@ -3,6 +3,7 @@ package net.guizhanss.fastmachines.utils.items
 import net.guizhanss.fastmachines.core.items.ItemWrapper
 import net.guizhanss.fastmachines.core.recipes.choices.ExactChoice
 import net.guizhanss.fastmachines.core.recipes.choices.MultipleChoice
+import net.guizhanss.fastmachines.core.recipes.choices.PredicateChoice
 import org.bukkit.inventory.RecipeChoice as BukkitRecipeChoice
 
 fun BukkitRecipeChoice.asFMRecipeChoice(amount: Int = 1) =
@@ -24,6 +25,8 @@ fun BukkitRecipeChoice.asFMRecipeChoice(amount: Int = 1) =
         }
 
         else -> {
-            throw IllegalArgumentException("Unknown RecipeChoice type: $this")
+            // Modern Paper and addon registries may supply PredicateChoice or ItemTypeChoice.
+            // Preserve their test(ItemStack) semantics; the example stack is not a matcher.
+            PredicateChoice(this.clone(), amount)
         }
     }
