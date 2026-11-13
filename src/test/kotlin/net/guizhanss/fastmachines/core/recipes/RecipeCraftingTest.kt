@@ -57,4 +57,23 @@ class RecipeCraftingTest {
         assertEquals(mapOf("iron" to 6, "coal" to 1, "charcoal" to 2), plan)
         assertEquals(3, maxAllocatableCrafts(available, requirements))
     }
+
+    @Test
+    fun `custom recipe ingredient never consumes generic items of the same material`() {
+        data class Ingredient(val material: String, val customId: String? = null)
+
+        val rawDuck = Ingredient("CHICKEN", "itemsadder:raw_duck")
+        val ordinaryChicken = Ingredient("CHICKEN")
+        val available = mapOf(rawDuck to 2, ordinaryChicken to 64)
+
+        // Models the accepted inventory keys produced by the original addon predicate.
+        val matches = available.keys.filterTo(mutableSetOf()) {
+            it.material == "CHICKEN" && it.customId == "itemsadder:raw_duck"
+        }
+        val requirements = listOf(AllocationRequirement(matches, 1))
+
+        assertEquals(2, maxAllocatableCrafts(available, requirements))
+        assertEquals(mapOf(rawDuck to 2), createAllocationPlan(available, requirements, 2))
+        assertNull(createAllocationPlan(available, requirements, 3))
+    }
 }
