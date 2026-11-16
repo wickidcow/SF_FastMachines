@@ -38,6 +38,20 @@ def release_shell(workflow: str) -> str:
     for phrase in required:
         if phrase not in release:
             raise ValueError("missing fail-closed release guard: " + phrase)
+    master_guard = (
+        'git fetch --no-tags origin "+refs/heads/master:refs/remotes/origin/master"',
+        'MASTER_SHA="$(git rev-parse refs/remotes/origin/master)"',
+        'CHECKOUT_SHA="$(git rev-parse HEAD)"',
+        'test "$CHECKOUT_SHA" = "$MASTER_SHA" || {',
+    )
+    for phrase in master_guard:
+        if phrase not in release:
+            raise ValueError("missing exact-master release guard: " + phrase)
+    if not all(release.index(master_guard[i]) < release.index(master_guard[i + 1])
+               for i in range(len(master_guard) - 1)):
+        raise ValueError("master source check must follow fetch and SHA resolution")
+    if release.index(master_guard[-1]) > release.index(required[4]):
+        raise ValueError("master source check must precede release lookup and creation")
     forbidden = ("gh release upload", "gh release delete-asset", "gh release edit",
                  "--clobber", "workflow_dispatch", "default_branch")
     if any(phrase in release for phrase in forbidden):
@@ -58,7 +72,8 @@ def release_shell(workflow: str) -> str:
     return "\n".join(line[10:] for line in lines) + "\n"
 
 
-def run_fake_release(shell: str, ref: str, exists: bool, jar_present: bool = True):
+def run_fake_release(shell: str, ref: str, exists: bool, jar_present: bool = True,
+                     head_matches_master: bool = True):
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         binary = root / "bin"
@@ -77,6 +92,22 @@ def run_fake_release(shell: str, ref: str, exists: bool, jar_present: bool = Tru
             encoding="utf-8",
         )
         fake.chmod(0o755)
+        fake_git = binary / "git"
+        fake_git.write_text(
+            '#!/bin/sh\n'
+            'if [ "$1" = fetch ]; then exit 0; fi\n'
+            'if [ "$1" = rev-parse ]; then\n'
+            '  case "$2" in\n'
+            '    refs/remotes/origin/master) printf "%s\n" "$FAKE_MASTER_SHA";;\n'
+            '    HEAD) printf "%s\n" "$FAKE_HEAD_SHA";;\n'
+            '    *) exit 99;;\n'
+            '  esac\n'
+            '  exit 0\n'
+            'fi\n'
+            'exit 99\n',
+            encoding="utf-8",
+        )
+        fake_git.chmod(0o755)
         (root / "dist").mkdir()
         if jar_present:
             (root / "dist/SF_FastMachines1.0.5.jar").write_bytes(b"test fixture, not a plugin")
@@ -90,6 +121,8 @@ def run_fake_release(shell: str, ref: str, exists: bool, jar_present: bool = Tru
             "GITHUB_REPOSITORY": "wickidcow/SF_FastMachines",
             "VERSION": "1.0.5",
             "OUTPUT_NAME": "SF_FastMachines1.0.5.jar",
+            "FAKE_MASTER_SHA": "1234abc",
+            "FAKE_HEAD_SHA": "1234abc" if head_matches_master else "other567",
         })
         result = subprocess.run(["bash", "-c", shell], cwd=root, env=env,
                                 text=True, capture_output=True, check=False)
@@ -133,7 +166,8 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
                     'if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then')
 
     def test_existing_release_must_exit(self):
-        self.mutate_release("            exit 1\n", "            true\n")
+        guard = 'echo "Release $TAG already exists; refusing to republish or overwrite assets." >&2\n            exit 1\n'
+        self.mutate_release(guard, guard.replace("exit 1", "true"))
 
     def test_existing_release_cannot_be_overwritten(self):
         self.mutate('gh release create "$TAG" "$JAR" --verify-tag --repo "$GITHUB_REPOSITORY"',
@@ -165,6 +199,16 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
         self.assertNotEqual(code, 0)
         self.assertEqual(len(calls), 1)
         self.assertTrue(calls[0].startswith("release view "))
+
+    def test_unmerged_tag_cannot_publish_even_when_version_matches(self):
+        code, calls = run_fake_release(release_shell(self.workflow),
+                                       "refs/tags/v1.0.5", False,
+                                       head_matches_master=False)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(calls, [])
+
+    def test_master_guard_cannot_be_removed(self):
+        self.mutate_release('test "$CHECKOUT_SHA" = "$MASTER_SHA" || {', 'if true; then')
 
     def test_mismatched_tag_never_calls_gh(self):
         code, calls = run_fake_release(release_shell(self.workflow), "refs/tags/v1.0.6", False)
