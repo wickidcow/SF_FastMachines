@@ -102,6 +102,14 @@ jobs:
           set -euo pipefail
           TAG="v${VERSION}"
           test "$GITHUB_REF" = "refs/tags/${TAG}"
+          # A tag from an unmerged branch must not publish a verified-looking JAR.
+          git fetch --no-tags origin "+refs/heads/master:refs/remotes/origin/master"
+          MASTER_SHA="$(git rev-parse refs/remotes/origin/master)"
+          CHECKOUT_SHA="$(git rev-parse HEAD)"
+          test "$CHECKOUT_SHA" = "$MASTER_SHA" || {
+            echo "Refusing tag publication: tag is not current master HEAD" >&2
+            exit 1
+          }
           JAR="dist/${OUTPUT_NAME}"
           test -s "$JAR"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
