@@ -166,7 +166,8 @@ class ImmutableReleasePolicyTest(unittest.TestCase):
                     'if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then')
 
     def test_existing_release_must_exit(self):
-        self.mutate_release("            exit 1\n", "            true\n")
+        guard = 'echo "Release $TAG already exists; refusing to republish or overwrite assets." >&2\n            exit 1\n'
+        self.mutate_release(guard, guard.replace("exit 1", "true"))
 
     def test_existing_release_cannot_be_overwritten(self):
         self.mutate('gh release create "$TAG" "$JAR" --verify-tag --repo "$GITHUB_REPOSITORY"',
