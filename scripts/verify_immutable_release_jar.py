@@ -21,7 +21,8 @@ def verify_jar(path: Path, version: str, expected_sha256: str) -> None:
         raise ValueError("Expected the canonical nonempty raw FastMachines JAR")
     if re.fullmatch(r"[0-9a-f]{64}", expected_sha256) is None:
         raise ValueError("Release requires a verified SHA-256 digest")
-    actual_sha256 = hashlib.file_digest(path.open("rb"), "sha256").hexdigest()
+    with path.open("rb") as source:
+        actual_sha256 = hashlib.file_digest(source, "sha256").hexdigest()
     if actual_sha256 != expected_sha256:
         raise ValueError("Canonical raw JAR SHA-256 mismatch")
 
