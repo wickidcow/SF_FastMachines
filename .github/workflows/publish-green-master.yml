@@ -1,0 +1,152 @@
+name: Publish verified FastMachines master
+
+on:
+  workflow_run:
+    workflows: ['Build FastMachines']
+    types: [completed]
+    branches: [master]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: fastmachines-immutable-master-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+      TESTED_RUN: ${{ github.event.workflow_run.id }}
+    steps:
+      - name: Check out the exact successful source commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Prove current master, exact build, and immutable release state
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          LIVE_SHA="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/master" --jq '.object.sha')"
+          if [[ "$LIVE_SHA" != "$TESTED_SHA" || "$(git rev-parse HEAD)" != "$TESTED_SHA" ]]; then
+            echo 'A new master commit superseded this successful run; skip the stale source.'
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          VERSION="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+          gradle = Path('gradle.properties').read_text(encoding='utf-8')
+          match = re.search(r'(?m)^projectVersion=([0-9]+(?:\.[0-9]+)+)$', gradle)
+          if not match:
+              raise SystemExit('Missing numeric projectVersion in gradle.properties')
+          version = match.group(1)
+          workflow = Path('.github/workflows/build.yml').read_text(encoding='utf-8')
+          if f'VERSION: "{version}"' not in workflow:
+              raise SystemExit('Build workflow version differs from projectVersion')
+          if f'OUTPUT_NAME: "SF_FastMachines{version}.jar"' not in workflow:
+              raise SystemExit('Build workflow canonical raw artifact differs from projectVersion')
+          print(version)
+          PY
+          )"
+          NAME="SF_FastMachines$VERSION.jar"
+          test -s "docs/releases/$VERSION.md"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$TESTED_RUN/jobs?per_page=100" > "$RUNNER_TEMP/jobs.json"
+          python3 - "$RUNNER_TEMP/jobs.json" <<'PY'
+          import json, sys
+          jobs = json.load(open(sys.argv[1], encoding='utf-8'))['jobs']
+          matches = [job for job in jobs if job['name'] == 'build-fastmachines']
+          if len(matches) != 1 or matches[0]['conclusion'] != 'success':
+              raise SystemExit('Build job not uniquely successful in the tested run')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$TESTED_RUN/artifacts?per_page=100" > "$RUNNER_TEMP/artifacts.json"
+          SHA256="$(python3 - "$RUNNER_TEMP/artifacts.json" "$NAME" "$TESTED_SHA" <<'PY'
+          import json, re, sys
+          data = json.load(open(sys.argv[1], encoding='utf-8'))
+          matches = [item for item in data['artifacts']
+                     if item['name'] == sys.argv[2] and not item['expired']
+                     and item.get('workflow_run', {}).get('head_sha') == sys.argv[3]]
+          if len(matches) != 1:
+              raise SystemExit('Missing or ambiguous raw-JAR artifact from exact successful run')
+          digest = matches[0].get('digest', '')
+          if not re.fullmatch(r'sha256:[0-9a-f]{64}', digest):
+              raise SystemExit('Missing official raw-artifact SHA-256 digest')
+          print(digest.split(':', 1)[1])
+          PY
+          )"
+          TAG="v$VERSION"
+          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" >/dev/null 2>"$RUNNER_TEMP/release.err"; then
+            echo "The immutable $TAG release already exists: do not overwrite or reissue."
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          elif ! grep -Fq 'HTTP 404' "$RUNNER_TEMP/release.err"; then
+            cat "$RUNNER_TEMP/release.err" >&2
+            exit 1
+          fi
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" >/dev/null 2>"$RUNNER_TEMP/tag.err"; then
+            echo "An existing $TAG tag has no release; refuse to retarget it." >&2
+            exit 1
+          elif ! grep -Fq 'HTTP 404' "$RUNNER_TEMP/tag.err"; then
+            cat "$RUNNER_TEMP/tag.err" >&2
+            exit 1
+          fi
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+      - name: Download only the verified build run's canonical raw JAR
+        if: steps.gate.outputs.publish == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ steps.gate.outputs.name }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: dist
+          skip-decompress: true
+      - name: Verify every class targets Java 21, plugin identity, and artifact hash
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          VERSION: ${{ steps.gate.outputs.version }}
+          NAME: ${{ steps.gate.outputs.name }}
+          EXPECTED_SHA256: ${{ steps.gate.outputs.sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_immutable_release_jar.py "dist/$NAME" "$VERSION" "$EXPECTED_SHA256"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/master" --jq '.object.sha')" = "$TESTED_SHA"
+      - name: Create only a new, exactly pinned immutable release
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          VERSION: ${{ steps.gate.outputs.version }}
+          NAME: ${{ steps.gate.outputs.name }}
+          EXPECTED_SHA256: ${{ steps.gate.outputs.sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/master" --jq '.object.sha')" = "$TESTED_SHA"
+          TAG="v$VERSION"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f "ref=refs/tags/$TAG" -f "sha=$TESTED_SHA" > "$RUNNER_TEMP/tag.json"
+          gh release create "$TAG" "dist/$NAME" --verify-tag \
+            --repo "$GITHUB_REPOSITORY" --target "$TESTED_SHA" \
+            --title "SF_FastMachines $VERSION" --notes-file "docs/releases/$VERSION.md"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq '.object.sha')" = "$TESTED_SHA"
+          mkdir -p "$RUNNER_TEMP/release-download"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern "$NAME" --dir "$RUNNER_TEMP/release-download"
+          python3 scripts/verify_immutable_release_jar.py \
+            "$RUNNER_TEMP/release-download/$NAME" "$VERSION" "$EXPECTED_SHA256"
